@@ -3,9 +3,21 @@ from django.db import models
 from django.core.exceptions import ValidationError
 import re
 
-# Membuat model user yang mewarisi AbstractUser
 class MyUser(AbstractUser):
+    CUSTOMER = 'customer'
+    MANAGER = 'manager'
+    ROLE_CHOICES = [
+        (CUSTOMER, 'Customer'),
+        (MANAGER, 'Manager'),
+    ]
+    
+
     phone_number = models.CharField(unique=True, max_length=15)
+    role = models.CharField(
+        max_length=10,
+        choices=ROLE_CHOICES,
+        default=CUSTOMER
+    )
 
     def clean_nomor_hp(self):
         if not re.match(r'^\d{8,15}$', self.nomor_hp):
@@ -41,3 +53,7 @@ class Customer(MyUser):
 class Manager(MyUser):
     def __str__(self):
         return self.username
+    
+    def save(self, *args, **kwargs):
+        self.role = self.MANAGER
+        super().save(*args, **kwargs)
