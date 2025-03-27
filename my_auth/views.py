@@ -6,6 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.http import JsonResponse
 from .models import MyUser
 from django.http import HttpResponseRedirect
+from django.conf import settings
 
 def index(request):
     return redirect('auth:login')
@@ -36,14 +37,15 @@ def login(request):
             response = HttpResponseRedirect('http://localhost:8000/')  # Ganti dengan URL tujuan
             
             response.set_cookie(
-                key='access_token',
+                key=settings.SIMPLE_JWT['AUTH_COOKIE'],
                 value=access_token,
-                httponly=True,
-                samesite='Lax',
-                secure=False,
+                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
                 path='/',
-                max_age=86400,
+                max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds(),
             )
+
             print("Login berhasil dengan username: ", request.POST['username'])
             return response
         else:
@@ -58,6 +60,6 @@ def logout(request):
     response = JsonResponse({
         'message': 'Logout berhasil!'
     })
-    response.delete_cookie('access_token')
+    response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'])
     request.session.flush() 
     return response
