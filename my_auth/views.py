@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from .models import MyUser
 from django.http import HttpResponseRedirect
 from django.conf import settings
+from my_auth.utils import login_ratelimit
 
 def index(request):
     return redirect('auth:login')
@@ -26,6 +27,7 @@ def register(request):
 
     return render(request, 'register.html', {'form': form})
 
+@login_ratelimit(key='post:username', rate='5/m', method='POST', block=True)
 def login(request):
     if request.method == 'POST':
         user = authenticate(username=request.POST['username'], password=request.POST['password'])
