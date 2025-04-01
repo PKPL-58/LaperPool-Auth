@@ -29,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-0qc@bx6v3*1w-l1^q+0)i%bz*ga6+w9&o0^1dfd5@^tnsz34p)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DJANGO_ENV = os.getenv('DJANGO_ENV', 'development')
+DJANGO_ENV = os.getenv('PODS_DJANGO_ENV', 'development')
 if DJANGO_ENV == 'production':
     DEBUG = False
 else:
@@ -89,7 +89,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
+        'USER': os.getenv('DB_USERNAME'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT'),
