@@ -47,5 +47,8 @@ USER appuser
 # Expose the application port
 EXPOSE 8000 
 
-# Start the application using Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "laperpool_auth.wsgi:application"]
+# Set the entrypoint script
+RUN chmod +x /app/entrypoint.sh
+
+# Set the entrypoint
+CMD ["/app/entrypoint.sh"]
