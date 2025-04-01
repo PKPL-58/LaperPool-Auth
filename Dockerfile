@@ -48,7 +48,7 @@ USER appuser
 EXPOSE 8000 
 
 # Set the entrypoint script
-RUN chmod +x /app/entrypoint.sh
+RUN chmod +x entrypoint.sh
 
 # Set the entrypoint
 CMD ["/app/entrypoint.sh"]
