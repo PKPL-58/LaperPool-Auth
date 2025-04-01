@@ -8,6 +8,8 @@ from .models import MyUser
 from django.http import HttpResponseRedirect
 from django.conf import settings
 from my_auth.utils import login_ratelimit
+from laperpool_auth.constant import HOME_URL
+from django.urls import reverse
 
 def index(request):
     return redirect('auth:login')
@@ -36,7 +38,7 @@ def login(request):
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
 
-            response = HttpResponseRedirect('http://localhost:8000/')  # Ganti dengan URL tujuan
+            response = HttpResponseRedirect(HOME_URL)
             
             response.set_cookie(
                 key=settings.SIMPLE_JWT['AUTH_COOKIE'],
@@ -59,9 +61,7 @@ def login(request):
         return render(request, 'login.html')
 
 def logout(request):
-    response = JsonResponse({
-        'message': 'Logout berhasil!'
-    })
+    response = HttpResponseRedirect(reverse('auth:login'))
     response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'])
     request.session.flush() 
     return response
