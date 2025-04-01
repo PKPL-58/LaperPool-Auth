@@ -35,7 +35,7 @@ if DJANGO_ENV == 'production':
 else:
     DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'kelompok-58-LaperPool-Auth.pkpl.cs.ui.ac.id', 'kelompok-58-laperpool-auth.pkpl.cs.ui.ac.id']
 
 # Application definition
 
