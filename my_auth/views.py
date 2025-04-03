@@ -3,13 +3,14 @@ from django.contrib import messages
 from .forms import CustomerCreationForm
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.http import JsonResponse
-from .models import MyUser
 from django.http import HttpResponseRedirect
 from django.conf import settings
 from my_auth.utils import login_ratelimit
 from laperpool_auth.constant import HOME_URL
 from django.urls import reverse
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from laperpool_auth import settings
+
 
 def index(request):
     return redirect('auth:login')
@@ -31,6 +32,9 @@ def register(request):
 
 @login_ratelimit(key='post:username', rate='5/m', method='POST', block=True)
 def login(request):
+    if is_authenticate(request):
+        return redirect(HOME_URL)
+
     if request.method == 'POST':
         user = authenticate(username=request.POST['username'], password=request.POST['password'])
         
@@ -65,3 +69,20 @@ def logout(request):
     response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'])
     request.session.flush() 
     return response
+
+# Function Helper untuk cek apakah sudah terautentikasi
+def is_authenticate(request):
+        raw_token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE'])
+
+        if raw_token is None:
+            return False
+        
+        try:
+            auth = JWTAuthentication()
+            validated_token = auth.get_validated_token(raw_token)
+            print("Token valid")
+            return True
+        except Exception as e:
+            print(e)
+            print("Token tidak valid")
+            return False
