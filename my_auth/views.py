@@ -38,7 +38,7 @@ def register(request):
 
     return render(request, 'register.html', {'form': form})
 
-@login_ratelimit(key='ip', rate='5/m', method='POST', block=True)
+@login_ratelimit(key='post:username', rate='5/m', method='POST', block=True)
 def login(request):
     if is_authenticate(request):
         logger.info("Pengguna sudah terautentikasi, mengarahkan ke HOME_URL.")
