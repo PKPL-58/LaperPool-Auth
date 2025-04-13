@@ -4,6 +4,9 @@ set -e
 echo "Running migrations..."
 python manage.py migrate
 
+echo "Create cache table..."
+python manage.py createcachetable
+
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
