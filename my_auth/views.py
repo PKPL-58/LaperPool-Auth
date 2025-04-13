@@ -48,7 +48,27 @@ def login(request):
         logger.info("Menerima permintaan POST untuk login.")
         logger.debug(f"Data POST: {request.POST}")
 
-        user = authenticate(username=request.POST['username'], password=request.POST['password'])
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '').strip()
+
+        if not username or not password:
+            messages.error(request, 'Username dan password tidak boleh kosong.')
+            return redirect('auth:login')
+
+        if not is_valid_username(username):
+            messages.error(request, 'Username hanya boleh mengandung huruf, angka, underscore, @, dan titik.')
+            return redirect('auth:login')
+
+        if len(username) < 3 or len(username) > 150:
+            messages.error(request, 'Username harus memiliki panjang antara 3 hingga 150 karakter.')
+            return redirect('auth:login')
+
+        if len(password) < 8:
+            messages.error(request, 'Password harus memiliki panjang minimal 8 karakter.')
+            return redirect('auth:login')
+
+        # Proses autentikasi
+        user = authenticate(username=username, password=password)
         
         if user is not None:
             logger.info(f"Login berhasil untuk pengguna: {user.username}")
@@ -107,3 +127,9 @@ def is_authenticate(request):
             print(e)
             print("Token tidak valid")
             return False
+
+# Function Helper untuk validasi username
+def is_valid_username(username):
+    import re
+    pattern = r'^[a-zA-Z0-9_.@]+$'
+    return re.match(pattern, username) is not None
