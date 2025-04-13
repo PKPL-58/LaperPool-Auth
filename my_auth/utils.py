@@ -8,9 +8,10 @@ from django_ratelimit.exceptions import Ratelimited
 from django_ratelimit.core import is_ratelimited
 from django.contrib import messages
 from django.shortcuts import redirect
+import logging
 
 __all__ = ['ratelimit']
-
+logger = logging.getLogger(__name__)
 
 def login_ratelimit(group=None, key=None, rate=None, method=ALL, block=True):
     def decorator(fn):
@@ -22,6 +23,8 @@ def login_ratelimit(group=None, key=None, rate=None, method=ALL, block=True):
                                          increment=True)
             request.limited = ratelimited or old_limited
             if ratelimited and block:
+                logger.warning(f"Rate limit tercapai untuk pengguna: {request.META.get('REMOTE_ADDR')} "
+                               f"dengan key: {key} dan value: {request.POST.get('username')}")
                 messages.error(request, "Anda telah melampaui batas percobaan login. Silakan coba lagi nanti.")
                 return redirect('auth:login')
             return fn(request, *args, **kw)
