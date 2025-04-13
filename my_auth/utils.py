@@ -23,7 +23,7 @@ def login_ratelimit(group=None, key=None, rate=None, method=ALL, block=True):
                                          increment=True)
             request.limited = ratelimited or old_limited
             if ratelimited and block:
-                logger.warning(f"Rate limit tercapai untuk pengguna: {request.META.get('REMOTE_ADDR')} "
+                logger.warning(f"Rate limit tercapai untuk pengguna: {request.POST.get('username')} "
                                f"dengan key: {key}.")
                 messages.error(request, "Anda telah melampaui batas percobaan login. Silakan coba lagi nanti.")
                 return redirect('auth:login')
