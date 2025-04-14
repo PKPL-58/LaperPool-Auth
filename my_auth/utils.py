@@ -22,6 +22,12 @@ def login_ratelimit(group=None, key=None, rate=None, method=ALL, block=True):
                                          key=key, rate=rate, method=method,
                                          increment=True)
             request.limited = ratelimited or old_limited
+
+            # Log semua headers 
+            logger.debug("Headers dari request:")
+            for header, value in request.META.items():
+                logger.debug(f"{header}: {value}")
+
             if ratelimited and block:
                 logger.warning(f"Rate limit tercapai untuk pengguna: {request.POST.get('username')} "
                                f"dengan key: {key}.")
