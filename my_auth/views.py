@@ -46,7 +46,6 @@ def login(request):
 
     if request.method == 'POST':
         logger.info("Menerima permintaan POST untuk login.")
-        logger.debug(f"Data POST: {request.POST}")
 
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '').strip()
