@@ -96,3 +96,101 @@ class LoginTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Username hanya boleh mengandung huruf, angka, underscore, @, dan titik.')
         mock_requests_get.assert_not_called()
+
+class RegisterTestCase(TestCase):
+    def setUp(self):
+        """Setup for registration tests."""
+        self.register_url = reverse('auth:register')
+        self.valid_data = {
+            'username': 'newuser@example.com',
+            'password1': 'SecurePass123',
+            'password2': 'SecurePass123',
+            'phone_number': '08123456789',
+            'pin': '123456',
+            'alamat': 'Jl. Test No. 123'
+        }
+
+    def test_valid_registration(self):
+        """Test registrasi dengan data yang valid."""
+        response = self.client.post(self.register_url, self.valid_data)
+        self.assertEqual(response.status_code, 302)  # Redirect setelah sukses
+        user = Customer.objects.get(username=self.valid_data['username'])
+        self.assertTrue(user.check_password(self.valid_data['password1']))
+        self.assertEqual(user.phone_number, self.valid_data['phone_number'])
+        self.assertEqual(user.alamat, self.valid_data['alamat'])
+
+    def test_invalid_email(self):
+        """Test registrasi dengan email tidak valid."""
+        data = self.valid_data.copy()
+        data['username'] = 'invalid-email'
+        response = self.client.post(self.register_url, data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Masukkan email yang valid.')
+
+    def test_invalid_pin(self):
+        """Test registrasi dengan PIN tidak valid."""
+        test_cases = [
+            ('12345', 'PIN harus berupa 6 digit angka.'),  # Terlalu pendek
+            ('1234567', 'PIN harus berupa 6 digit angka.'),  # Terlalu panjang
+            ('abcdef', 'PIN harus berupa 6 digit angka.'),  # Bukan angka
+        ]
+        
+        for pin, error_message in test_cases:
+            data = self.valid_data.copy()
+            data['pin'] = pin
+            response = self.client.post(self.register_url, data, follow=True)
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, error_message)
+
+    def test_invalid_phone(self):
+        """Test registrasi dengan nomor telepon tidak valid."""
+        data = self.valid_data.copy()
+        data['phone_number'] = 'abc12345'
+        response = self.client.post(self.register_url, data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Nomor telepon hanya boleh mengandung angka.')
+
+    def test_xss_in_alamat(self):
+        """Test pencegahan XSS dalam alamat."""
+        data = self.valid_data.copy()
+        data['alamat'] = '<script>alert("XSS")</script>'
+        response = self.client.post(self.register_url, data)
+        self.assertEqual(response.status_code, 302)  # Redirect setelah sukses
+        user = Customer.objects.get(username=self.valid_data['username'])
+        self.assertNotIn('<script>', user.alamat)  # Memastikan script tag di-escape
+
+    def test_missing_required_fields(self):
+        """Test registrasi dengan field yang required kosong."""
+        required_fields = ['username', 'password1', 'password2', 'phone_number', 'pin']
+        
+        for field in required_fields:
+            data = self.valid_data.copy()
+            data[field] = ''
+            response = self.client.post(self.register_url, data, follow=True)
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, 'This field is required.')
+
+    def test_password_validation(self):
+        """Test validasi password."""
+        test_cases = [
+            {'password1': 'short', 'password2': 'short', 'error': 'This password is too short.'},
+            {'password1': 'admin', 'password2': 'admin', 'error': 'This password is too common.'},
+            {'password1': 'SecurePass123', 'password2': 'DifferentPass123', 'error': 'The two password fields didn’t match'},
+        ]
+        
+        for test_case in test_cases:
+            data = self.valid_data.copy()
+            data['password1'] = test_case['password1']
+            data['password2'] = test_case['password2']
+            response = self.client.post(self.register_url, data, follow=True)
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, test_case['error'])
+
+    @patch('my_auth.views.logger.info')
+    def test_successful_registration_logging(self, mock_logger_info):
+        """Test logging untuk registrasi berhasil."""
+        response = self.client.post(self.register_url, self.valid_data)
+        self.assertEqual(response.status_code, 302)
+        mock_logger_info.assert_called_with(
+            f"Registrasi berhasil untuk pengguna: {self.valid_data['username']}"
+        )
