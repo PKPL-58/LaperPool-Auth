@@ -194,3 +194,52 @@ class RegisterTestCase(TestCase):
         mock_logger_info.assert_called_with(
             f"Registrasi berhasil untuk pengguna: {self.valid_data['username']}"
         )
+
+class LogoutTestCase(TestCase):
+    def setUp(self):
+        """Setup untuk test logout."""
+        self.user = Customer.objects.create_user(
+            username='testuser@example.com',
+            password='SecurePass123',
+            phone_number='08123456789'
+        )
+        self.logout_url = reverse('auth:logout')
+
+        # Login dan dapatkan token
+        response = self.client.post(
+            reverse('auth:login'),
+            {'username': 'testuser@example.com', 'password': 'SecurePass123'}
+        )
+        # Pastikan login berhasil dan token ada
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(settings.SIMPLE_JWT['AUTH_COOKIE'], response.cookies)
+
+    def test_successful_logout(self):
+        """Test logout berhasil."""
+        response = self.client.post(self.logout_url, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(settings.SIMPLE_JWT['AUTH_COOKIE'], response.cookies)
+
+    def test_session_cleared_after_logout(self):
+        """Test JWT cookie dihapus setelah logout."""
+        response = self.client.post(self.logout_url)
+        
+        # Cek JWT cookie dihapus
+        self.assertEqual(
+            response.cookies[settings.SIMPLE_JWT['AUTH_COOKIE']].value,
+            '',
+            "Token JWT tidak diinvalidasi"
+        )
+        self.assertEqual(
+            response.cookies[settings.SIMPLE_JWT['AUTH_COOKIE']]['max-age'],
+            0,
+            "Token JWT tidak diset expired"
+        )
+
+    @patch('my_auth.views.logger.info')
+    def test_logout_logging(self, mock_logger_info):
+        """Test logging untuk aktivitas logout."""
+        response = self.client.post(self.logout_url)
+        mock_logger_info.assert_called_with(
+            "Pengguna melakukan logout."
+        )
