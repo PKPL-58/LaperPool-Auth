@@ -124,7 +124,7 @@ CSRF_COOKIE_SAMESITE = 'Strict'
 SIMPLE_JWT = {
     'AUTH_COOKIE': 'access_token',
     'AUTH_COOKIE_HTTP_ONLY': True,
-    'AUTH_COOKIE_SECURE': False,
+    'AUTH_COOKIE_SECURE': False if os.getenv('DJANGO_ENV') == 'development' else True,
     'AUTH_COOKIE_SAMESITE': 'Lax',
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
