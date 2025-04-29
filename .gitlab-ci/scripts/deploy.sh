@@ -1,5 +1,9 @@
 #!/bin/sh
 
+
+# Clears out stopped containers
+docker container prune
+
 # Deployment
 echo "Deploying Image $TAG_IMAGE_NAME"
 
