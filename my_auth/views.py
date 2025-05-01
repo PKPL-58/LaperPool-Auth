@@ -103,9 +103,13 @@ def logout(request):
     
     response = HttpResponseRedirect(reverse('auth:login'))
     
-    response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'])
+    response.delete_cookie(
+        key=settings.SIMPLE_JWT['AUTH_COOKIE'],
+        domain='.pkpl.cs.ui.ac.id',
+        path='/'
+    )    
+
     logger.debug("Cookie JWT berhasil dihapus.")
-    
     request.session.flush()
     logger.debug("Session pengguna berhasil dihapus.")
     
